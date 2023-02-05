@@ -14,7 +14,8 @@ import {
 } from "@mui/material";
 import { push, ref } from "firebase/database";
 import { database } from "../../firebase";
-
+import { storage } from '../../firebase'
+import {ref as refStorage, uploadBytes, getDownloadURL} from 'firebase/storage'
 export const FormCart = () => {
   const {
     handleSubmit,
@@ -28,13 +29,27 @@ export const FormCart = () => {
       longDescription: "",
       price: 1,
       category: "topRated",
+      pictureUrl: ""
     },
     mode: "onBlur",
   });
 
   const onSubmit = (data) => {
-    // writeCartData(data);
-    console.log(data);
+    
+    if(data.pictureUrl) {
+      const imageRef = refStorage(storage, `cartImage/${data.name + data.pictureUrl.name}`)
+      uploadBytes(imageRef, data.pictureUrl)
+      .then(() => {
+        getDownloadURL(imageRef)
+        .then((url) => {
+          if(url) {
+            writeCartData({...data, url: url});
+          }
+        })
+        .catch(e => console.error(e.message))
+      })
+      .catch(e => console.error('upload bytes', e.message))
+    }
     reset();
   };
 
@@ -57,7 +72,8 @@ export const FormCart = () => {
         rules={{ required: "required field" }}
         render={({
           field: { onBlur, value, onChange },
-          fieldState: { error },
+          fieldState: { error  },
+          formState: {isLoading}
         }) => (
           <FormControl>
             <TextField
@@ -165,13 +181,13 @@ export const FormCart = () => {
       />
 
       <Controller
-        name="img"
+        name="pictureUrl"
         control={control}
-        render={() => (
+        render={({field: {onChange}}) => (
           <FormControl>
             <Button variant="contained" component="label">
               Upload
-              <input hidden accept="image/*" multiple type="file" />
+              <input hidden type="file" onChange={(e) => onChange(e.target.files[0])} multiple/>
             </Button>
           </FormControl>
         )}
@@ -183,16 +199,14 @@ export const FormCart = () => {
           size="large"
           variant="contained"
           type="submit"
+          color="success"
         >
           Add cart
         </Button>
+
         {!isLoading && <CircularProgress size={25} />}
         <Button
-          onClick={() =>
-            reset({
-              price: "123",
-            })
-          }
+          onClick={() => reset()}
           variant="outlined"
           size="large"
         >

@@ -5,8 +5,8 @@ import Item from '../../components/Item'
 import {useDispatch, useSelector} from 'react-redux'
 import { setItem } from '../../store/cartReducer'
 import axios from 'axios'
-
-
+import { ref, onValue, query, limitToLast, get } from "firebase/database";
+import { database } from '../../firebase'
 
 
 export const ShoppingList = () => {
@@ -14,27 +14,36 @@ export const ShoppingList = () => {
   const [value, setValue] = React.useState('all')
   const items = useSelector(state => state.cart.items)
   const isNonMobile = useMediaQuery("(min-width:600px)");
-  console.log(items);
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
 
-  const getItems = async() => {
-    const response = await axios("http://localhost:1337/api/items?populate=image")
-    const data = await response.data.data
-    dispatch(setItem(data))
-  }
-
- 
-
+ const getItemsDatabase = async() => {
+  const response = await ref(database, "shirts/");
+  onValue(response, (snapshot) => {
+    let records = [];
+    snapshot.forEach((childSnapshot) => {
+      let keyData = childSnapshot.key;
+      let dataValue = childSnapshot.val();
+      records = [...records, {id: keyData, ...dataValue}]
+    });
+    if(records.length) {
+      console.log('rerender')
+      dispatch(setItem(records))
+    }
+   
+  });
+ }
+ console.log(items)
   React.useEffect(() => {
-    getItems()
+    // getItems()
+    getItemsDatabase()
   }, [])
   
   
-  const topRatedItems = items.filter(item => item.attributes.category === "topRated")
-  const newArrivalsItems = items.filter(item => item.attributes.category === "newArrivals")
-  const bestSellersItems = items.filter(item => item.attributes.category === "bestSellers")
+  const topRatedItems = items.filter(item => item.category === "topRated")
+  const newArrivalsItems = items.filter(item => item.category === "newArrivals")
+  const bestSellersItems = items.filter(item => item.category === "bestSellers")
   return (
     <Box width="80%" margin="80px auto">
       <Typography variant='h3' textAlign="center">
@@ -42,7 +51,7 @@ export const ShoppingList = () => {
       </Typography>
       <Tabs
         textColor="primary"
-        indicatorColor='priamry'
+        indicatorColor='primary'
         value={value}
         onChange={handleChange}
         centered
