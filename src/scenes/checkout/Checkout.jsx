@@ -27,7 +27,7 @@ export const Checkout = () => {
       </Step>
     </Stepper>
     <Box component="form" onSubmit={handleSubmit(handleFormSubmit)}
-      display="flex" flexDirection="column"
+      display="flex" flexDirection="column" justifyContent="space-between" height="450px" mt="60px" maxWidth="320px"
     >
       <TextField  {...register("First name")} placeholder="First name" label="First name" required/>
       <TextField  {...register("Email")} placeholder="Email" label="Email" required/>

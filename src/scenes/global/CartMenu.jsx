@@ -136,7 +136,7 @@ const CartMenu = () => {
               }}
               onClick={() => {
                 dispatch(setIsCartOpen({}))
-                
+                navigate('/checkout')
               }}
             >
               CHECKOUT
