@@ -25,6 +25,7 @@ export const MainCarousel = () => {
       showThumbs={false}
       showIndicators={false}
       showStatus={false}
+      swipeable={false}
       renderArrowPrev={(onClickHandler, hasPrev, label) => (
         <IconButton
           onClick={onClickHandler}
